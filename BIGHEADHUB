@@ -1,4 +1,4 @@
--- [[ BigHead hub - Ultimate Complete Script (Bug Fixed) ]]
+-- [[ BigHead hub - Ultimate Complete Script (Bug Fixed & Teleport Added) ]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -6,6 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local TextChatService = game:GetService("TextChatService")
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
@@ -21,105 +22,116 @@ ScreenGui.Name = "BigHeadHubGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
+-- [[ 腳本載入狀態鎖 ]]
+local IsScriptLoaded = false
+
 -- [[ 多語言翻譯表 (i18n) ]]
 local CurrentLanguage = "zh-tw"
 
 local Translations = {
     ["en-gb"] = {
-        SearchPlaceholder = "🔍 Search features...", TabCombat = "Combat", TabMovement = "Movement", TabESP = "ESP", TabCamera = "Camera", TabWorld = "World", TabUtility = "Utility", TabSettings = "Settings", TabSocial = "Social",
+        SearchPlaceholder = "🔍 Search...", TabCombat = "Combat", TabMovement = "Movement", TabTeleport = "Teleport", TabESP = "ESP", TabCamera = "Camera", TabWorld = "World", TabUtility = "Utility", TabSettings = "Settings", TabSocial = "Social",
         StateOn = " : ON", StateOff = " : OFF",
         Aimbot = "Aimbot", Smoothness = "Smoothness", Wallcheck = "Wallcheck", PeekDelay = "Peek Delay (ms)", FovSize = "FOV Size", ShowFov = "Show FOV Circle", Triggerbot = "Triggerbot", TriggerDelay = "Trigger Delay (ms)", Fling = "Fling Target", FlingInput = "Target Username...", AntiFling = "Anti-Fling",
         Fly = "Fly Hack", FlySpeed = "Fly Speed", Speed = "Speed Hack", WalkSpeed = "Walk Speed", InfJump = "Infinite Jump", Noclip = "Noclip", Invisible = "Invisible",
+        TpMethod = "Teleport Method", TpSpeed = "TP Fly Speed", SelectPlayer = "Select Player to TP", TpToCoord = "TP to Coordinates (X, Y, Z)", DoTpCoord = "🚀 Teleport to Coordinates", TpToMouse = "🖱️ Teleport to Mouse", MouseTpKey = "Mouse TP Key [Press V]",
         PlayerEsp = "Player ESP", HumanoidEsp = "Humanoid ESP", VisibleCheck = "Visible Only",
         Freecam = "Freecam [Shift+P]", FreecamSpeed = "Freecam Speed", FovMode = "FOV Mode", FovAngle = "FOV Angle", ThirdPerson = "Toggle 3rd Person [Press B]",
-        Fullbright = "Fullbright", Xray = "Map XRay", ApplySkybox = "🌌 Apply Skybox Settings", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "SunTextureId", MoonTexture = "MoonTextureId", StarCount = "Star Count", ShowCelestial = "Show Sun & Moon", TimeOfDay = "Clock Time", Brightness = "Brightness",
+        Fullbright = "Fullbright", Xray = "Map XRay", LowQuality = "超低畫質", ApplySkybox = "🌌 Apply Skybox Settings", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "SunTextureId", MoonTexture = "MoonTextureId", StarCount = "Star Count", ShowCelestial = "Show Sun & Moon", TimeOfDay = "Clock Time", Brightness = "Brightness",
         AutoPickup = "Auto Pickup Tools", AutoPrompt = "Auto Proximity Prompt", AnimId = "Enter Animation ID...", AnimSpeed = "Anim Speed (Default 1)...", PlayAnim = "▶️ Play Animation", StopAnim = "⏹️ Stop Animation", AutoToxic = "Auto Toxic", ChatSpam = "Chat Spam", SpamInput = "Enter Spam Message...",
         LangSelect = "🌐 Language / 語言", ThemeSelect = "🎨 UI Theme / 主題", JsonPlaceholder = "Paste Config JSON here...", ImportJson = "📥 Import Config from TextBox", ExportJson = "📤 Export Config to TextBox", SaveConfig = "💾 Save Config File", LoadConfig = "📂 Load Config File", UnloadScript = "❌ Unload Script",
         SocialTranslator = "Translator: gemini", SocialDeveloper = "Script Writer: BigHead", CopyDiscord = "📋 Copy Discord Link", CopyYoutube = "📋 Copy YouTube Link", CopiedMsg = "Copied to clipboard!"
     },
     ["en-us"] = {
-        SearchPlaceholder = "🔍 Search features...", TabCombat = "Combat", TabMovement = "Movement", TabESP = "ESP", TabCamera = "Camera", TabWorld = "World", TabUtility = "Utility", TabSettings = "Settings", TabSocial = "Social",
+        SearchPlaceholder = "🔍 Search...", TabCombat = "Combat", TabMovement = "Movement", TabTeleport = "Teleport", TabESP = "ESP", TabCamera = "Camera", TabWorld = "World", TabUtility = "Utility", TabSettings = "Settings", TabSocial = "Social",
         StateOn = " : ON", StateOff = " : OFF",
         Aimbot = "Aimbot", Smoothness = "Smoothness", Wallcheck = "Wallcheck", PeekDelay = "Peek Delay (ms)", FovSize = "FOV Size", ShowFov = "Show FOV Circle", Triggerbot = "Triggerbot", TriggerDelay = "Trigger Delay (ms)", Fling = "Fling Target", FlingInput = "Target Username...", AntiFling = "Anti-Fling",
         Fly = "Fly Hack", FlySpeed = "Fly Speed", Speed = "Speed Hack", WalkSpeed = "Walk Speed", InfJump = "Infinite Jump", Noclip = "Noclip", Invisible = "Invisible",
+        TpMethod = "Teleport Method", TpSpeed = "TP Fly Speed", SelectPlayer = "Select Player to TP", TpToCoord = "TP to Coordinates (X, Y, Z)", DoTpCoord = "🚀 Teleport to Coordinates", TpToMouse = "🖱️ Teleport to Mouse", MouseTpKey = "Mouse TP Key [Press V]",
         PlayerEsp = "Player ESP", HumanoidEsp = "Humanoid ESP", VisibleCheck = "Visible Only",
         Freecam = "Freecam [Shift+P]", FreecamSpeed = "Freecam Speed", FovMode = "FOV Mode", FovAngle = "FOV Angle", ThirdPerson = "Toggle 3rd Person [Press B]",
-        Fullbright = "Fullbright", Xray = "Map XRay", ApplySkybox = "🌌 Apply Skybox Settings", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "SunTextureId", MoonTexture = "MoonTextureId", StarCount = "Star Count", ShowCelestial = "Show Sun & Moon", TimeOfDay = "Clock Time", Brightness = "Brightness",
+        Fullbright = "Fullbright", Xray = "Map XRay", LowQuality = "Low Quality(For FPS Boost)", ApplySkybox = "🌌 Apply Skybox Settings", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "SunTextureId", MoonTexture = "MoonTextureId", StarCount = "Star Count", ShowCelestial = "Show Sun & Moon", TimeOfDay = "Clock Time", Brightness = "Brightness",
         AutoPickup = "Auto Pickup Tools", AutoPrompt = "Auto Proximity Prompt", AnimId = "Enter Animation ID...", AnimSpeed = "Anim Speed (Default 1)...", PlayAnim = "▶️ Play Animation", StopAnim = "⏹️ Stop Animation", AutoToxic = "Auto Toxic", ChatSpam = "Chat Spam", SpamInput = "Enter Spam Message...",
         LangSelect = "🌐 Language / 語言", ThemeSelect = "🎨 UI Theme / 主題", JsonPlaceholder = "Paste Config JSON here...", ImportJson = "📥 Import Config from TextBox", ExportJson = "📤 Export Config to TextBox", SaveConfig = "💾 Save Config File", LoadConfig = "📂 Load Config File", UnloadScript = "❌ Unload Script",
         SocialTranslator = "Translator: gemini", SocialDeveloper = "Script Writer: BigHead", CopyDiscord = "📋 Copy Discord Link", CopyYoutube = "📋 Copy YouTube Link", CopiedMsg = "Copied to clipboard!"
     },
     ["zh-cn"] = {
-        SearchPlaceholder = "🔍 搜索功能关键字...", TabCombat = "战斗", TabMovement = "移动", TabESP = "透视", TabCamera = "视角", TabWorld = "世界", TabUtility = "实用工具", TabSettings = "设置", TabSocial = "社交",
+        SearchPlaceholder = "🔍 搜索...", TabCombat = "战斗", TabMovement = "移动", TabTeleport = "传送", TabESP = "透视", TabCamera = "视角", TabWorld = "世界", TabUtility = "实用工具", TabSettings = "设置", TabSocial = "社交",
         StateOn = " : 开启", StateOff = " : 关闭",
         Aimbot = "启用 自瞄 (Aimbot)", Smoothness = "平滑度 (Smoothness)", Wallcheck = "墙壁检测 (Wallcheck)", PeekDelay = "露头锁定延迟 (ms)", FovSize = "FOV 范围大小", ShowFov = "显示 FOV 圆圈", Triggerbot = "自动发射 (Triggerbot)", TriggerDelay = "Triggerbot 延迟 (ms)", Fling = "物理撞飞 (Fling)", FlingInput = "输入 Fling 目标玩家名字...", AntiFling = "反撞飞 (Anti-Fling)",
         Fly = "飞行 (Fly Hack)", FlySpeed = "飞行速度", Speed = "速度 (Speed Hack)", WalkSpeed = "行走速度", InfJump = "无限跳 (Inf Jump)", Noclip = "穿墙 (Noclip)", Invisible = "本地隐形 (Invisible)",
+        TpMethod = "传送方式", TpSpeed = "TP 飞行速度", SelectPlayer = "传送至玩家位置", TpToCoord = "坐标传送 (X, Y, Z)", DoTpCoord = "🚀 传送至坐标", TpToMouse = "🖱️ 传送至鼠标位置", MouseTpKey = "鼠标传送快捷键 [按 V 键]",
         PlayerEsp = "玩家透视 (Player ESP)", HumanoidEsp = "全生物透视 (Humanoid ESP)", VisibleCheck = "墙壁过滤 (Visible Only)",
         Freecam = "自由视角 (Freecam) [Shift+P]", FreecamSpeed = "Freecam 移动速度", FovMode = "超广角模式 (FOV)", FovAngle = "FOV 角度", ThirdPerson = "强制第三人称 [按 B 键切换]",
-        Fullbright = "超高亮 (Fullbright)", Xray = "地图透视 (XRay)", ApplySkybox = "🌌 应用 Skybox 贴图设置", SkyBk = "SkyboxBk (后)", SkyDn = "SkyboxDn (下)", SkyFt = "SkyboxFt (前)", SkyLf = "SkyboxLf (左)", SkyRt = "SkyboxRt (右)", SkyUp = "SkyboxUp (上)", SunTexture = "SunTextureId (太阳)", MoonTexture = "MoonTextureId (月亮)", StarCount = "星星数量", ShowCelestial = "显示日月", TimeOfDay = "时间 (ClockTime)", Brightness = "环境光 (Brightness)",
+        Fullbright = "超高亮 (Fullbright)", Xray = "地图透视 (XRay)", LowQuality = "马铃薯画质", ApplySkybox = "🌌 应用 Skybox 贴图设置", SkyBk = "SkyboxBk (后)", SkyDn = "SkyboxDn (下)", SkyFt = "SkyboxFt (前)", SkyLf = "SkyboxLf (左)", SkyRt = "SkyboxRt (右)", SkyUp = "SkyboxUp (上)", SunTexture = "SunTextureId (太阳)", MoonTexture = "MoonTextureId (月亮)", StarCount = "星星数量", ShowCelestial = "显示日月", TimeOfDay = "时间 (ClockTime)", Brightness = "环境光 (Brightness)",
         AutoPickup = "自动捡取道具 (Auto Pickup)", AutoPrompt = "自动互动 (Auto Prompt)", AnimId = "输入 Animation ID...", AnimSpeed = "Anim 速度 (默认 1)...", PlayAnim = "▶️ 播放 Animation", StopAnim = "⏹️ 停止 Animation", AutoToxic = "自动嘲讽 (Auto Toxic)", ChatSpam = "聊天刷屏 (Chat Spam)", SpamInput = "输入刷屏内容...",
         LangSelect = "🌐 Language / 语言", ThemeSelect = "🎨 UI 主题风格", JsonPlaceholder = "将 Config JSON 内容贴于此处...", ImportJson = "📥 从上方 TextBox 导入 JSON 设置", ExportJson = "📤 导出 JSON 设置至上方 TextBox", SaveConfig = "💾 保存 设置档", LoadConfig = "📂 加载 设置档", UnloadScript = "❌ 完全卸载脚本",
         SocialTranslator = "翻译：gemini", SocialDeveloper = "脚本编写：大头", CopyDiscord = "📋 复制 Discord 链接", CopyYoutube = "📋 复制 YouTube 链接", CopiedMsg = "已复制到剪贴板！"
     },
     ["zh-tw"] = {
-        SearchPlaceholder = "🔍 搜尋功能關鍵字...", TabCombat = "戰鬥", TabMovement = "移動", TabESP = "透視", TabCamera = "視角", TabWorld = "世界", TabUtility = "實用工具", TabSettings = "設定", TabSocial = "社群",
+        SearchPlaceholder = "🔍 搜尋...", TabCombat = "戰鬥", TabMovement = "移動", TabTeleport = "傳送", TabESP = "透視", TabCamera = "視角", TabWorld = "世界", TabUtility = "實用工具", TabSettings = "設定", TabSocial = "社群",
         StateOn = " : 開啟", StateOff = " : 關閉",
         Aimbot = "啟用 自瞄 (Aimbot)", Smoothness = "平滑度 (Smoothness)", Wallcheck = "牆壁檢測 (Wallcheck)", PeekDelay = "露頭鎖定延遲 (ms)", FovSize = "FOV 範圍大小", ShowFov = "顯示 FOV 圓圈", Triggerbot = "自動發射 (Triggerbot)", TriggerDelay = "Triggerbot 延遲 (ms)", Fling = "物理撞飛 (Fling)", FlingInput = "輸入 Fling 目標玩家名字...", AntiFling = "反撞飛 (Anti-Fling)",
         Fly = "飛行挂 (Fly Hack)", FlySpeed = "飛行速度", Speed = "速度挂 (Speed Hack)", WalkSpeed = "行走速度", InfJump = "無限跳 (Inf Jump)", Noclip = "穿牆 (Noclip)", Invisible = "本地隱形 (Invisible)",
+        TpMethod = "傳送方式", TpSpeed = "TP 飛行速度", SelectPlayer = "傳送至玩家位置", TpToCoord = "座標傳送 (X, Y, Z)", DoTpCoord = "🚀 傳送至座標", TpToMouse = "🖱️ 傳送至鼠標位置", MouseTpKey = "鼠標傳送快捷鍵 [按 V 鍵]",
         PlayerEsp = "玩家透視 (Player ESP)", HumanoidEsp = "全生物透視 (Humanoid ESP)", VisibleCheck = "牆壁過濾 (Visible Only)",
         Freecam = "自由視角 (Freecam) [Shift+P]", FreecamSpeed = "Freecam 移動速度", FovMode = "超廣角模式 (FOV)", FovAngle = "FOV 角度", ThirdPerson = "強制第三人稱 [按 B 鍵切換]",
-        Fullbright = "超高亮 (Fullbright)", Xray = "地圖透視 (XRay)", ApplySkybox = "🌌 應用 Skybox 貼圖設定", SkyBk = "SkyboxBk (後)", SkyDn = "SkyboxDn (下)", SkyFt = "SkyboxFt (前)", SkyLf = "SkyboxLf (左)", SkyRt = "SkyboxRt (右)", SkyUp = "SkyboxUp (上)", SunTexture = "SunTextureId (太陽)", MoonTexture = "MoonTextureId (月亮)", StarCount = "星星數量", ShowCelestial = "顯示日月", TimeOfDay = "時間 (ClockTime)", Brightness = "環境光 (Brightness)",
+        Fullbright = "超高亮 (Fullbright)", Xray = "地圖透視 (XRay)", LowQuality = "低畫質", ApplySkybox = "🌌 應用 Skybox 貼圖設定", SkyBk = "SkyboxBk (後)", SkyDn = "SkyboxDn (下)", SkyFt = "SkyboxFt (前)", SkyLf = "SkyboxLf (左)", SkyRt = "SkyboxRt (右)", SkyUp = "SkyboxUp (上)", SunTexture = "SunTextureId (太陽)", MoonTexture = "MoonTextureId (月亮)", StarCount = "星星數量", ShowCelestial = "顯示日月", TimeOfDay = "時間 (ClockTime)", Brightness = "環境光 (Brightness)",
         AutoPickup = "自動撿取道具 (Auto Pickup)", AutoPrompt = "自動互動 (Auto Prompt)", AnimId = "輸入 Animation ID...", AnimSpeed = "Anim 速度 (預設 1)...", PlayAnim = "▶️ 播放 Animation", StopAnim = "⏹️ 停止 Animation", AutoToxic = "自動嗆人 (Auto Toxic)", ChatSpam = "聊天刷屏 (Chat Spam)", SpamInput = "輸入刷屏內容...",
         LangSelect = "🌐 Language / 語言", ThemeSelect = "🎨 UI 主題風格", JsonPlaceholder = "將 Config JSON 內容貼於此處...", ImportJson = "📥 從上方 TextBox 導入 JSON 設定", ExportJson = "📤 導出 JSON 設定至上方 TextBox", SaveConfig = "💾 儲存 設定檔", LoadConfig = "📂 載入 設定檔", UnloadScript = "❌ 完全卸載腳本",
         SocialTranslator = "翻譯：gemini", SocialDeveloper = "腳本編寫：大頭", CopyDiscord = "📋 複製 Discord 連結", CopyYoutube = "📋 複製 YouTube 連結", CopiedMsg = "已複製至剪貼簿！"
     },
     ["ja"] = {
-        SearchPlaceholder = "🔍 機能を検索...", TabCombat = "戦闘", TabMovement = "移動", TabESP = "透視 (ESP)", TabCamera = "カメラ", TabWorld = "ワールド", TabUtility = "ユーティリティ", TabSettings = "設定", TabSocial = "ソーシャル",
+        SearchPlaceholder = "🔍 検索...", TabCombat = "戦闘", TabMovement = "移動", TabTeleport = "テレポート", TabESP = "透視 (ESP)", TabCamera = "カメラ", TabWorld = "ワールド", TabUtility = "ユーティリティ", TabSettings = "設定", TabSocial = "ソーシャル",
         StateOn = " : オン", StateOff = " : オフ",
         Aimbot = "エイムボット", Smoothness = "スムーズ度", Wallcheck = "壁チェック", PeekDelay = "ディレイ (ms)", FovSize = "FOV サイズ", ShowFov = "FOV 円を表示", Triggerbot = "トリガーボット", TriggerDelay = "トリガー遅延 (ms)", Fling = "フリングターゲット", FlingInput = "プレイヤー名...", AntiFling = "アンチフリング",
         Fly = "飛行ハック", FlySpeed = "飛行速度", Speed = "移動速度ハック", WalkSpeed = "歩行速度", InfJump = "無限ジャンプ", Noclip = "壁通り抜け", Invisible = "透明化",
+        TpMethod = "テレポート方式", TpSpeed = "TP 飛行速度", SelectPlayer = "プレイヤーにテレポート", TpToCoord = "座標テレポート (X, Y, Z)", DoTpCoord = "🚀 座標へ移動", TpToMouse = "🖱️ カーソル位置へ移動", MouseTpKey = "カーソルTPショートカット [V]",
         PlayerEsp = "プレイヤー ESP", HumanoidEsp = "全 Bot/NPC ESP", VisibleCheck = "可視のみ",
         Freecam = "フリーカメラ [Shift+P]", FreecamSpeed = "カメラ速度", FovMode = "FOV モード", FovAngle = "FOV 角度", ThirdPerson = "三人称切り替え [B]",
-        Fullbright = "全亮", Xray = "マップ X 線", ApplySkybox = "🌌 スカイボックス適用", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "太陽テクスチャ", MoonTexture = "月テクスチャ", StarCount = "星の数", ShowCelestial = "太陽と月を表示", TimeOfDay = "時刻", Brightness = "明るさ",
+        Fullbright = "全亮", Xray = "マップ X 線", LowQuality = "低画質の画像", ApplySkybox = "🌌 スカイボックス適用", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "太陽テクスチャ", MoonTexture = "月テクスチャ", StarCount = "星の数", ShowCelestial = "太陽と月を表示", TimeOfDay = "時刻", Brightness = "明るさ",
         AutoPickup = "自動アイテム拾い", AutoPrompt = "自動プロンプト操作", AnimId = "アニメーション ID...", AnimSpeed = "再生速度 (標準 1)...", PlayAnim = "▶️ アニメ再生", StopAnim = "⏹️ アニメ停止", AutoToxic = "自動煽り", ChatSpam = "チャットスパム", SpamInput = "スパムメッセージ...",
         LangSelect = "🌐 言語選択 (Language)", ThemeSelect = "🎨 テーマ (Theme)", JsonPlaceholder = "JSON 設定を貼り付け...", ImportJson = "📥 JSON インポート", ExportJson = "📤 JSON エクスポート", SaveConfig = "💾 設定保存", LoadConfig = "📂 設定読み込み", UnloadScript = "❌ スクリプト解除",
         SocialTranslator = "翻訳: gemini", SocialDeveloper = "スクリプト作成: 大頭", CopyDiscord = "📋 Discord リンクコピー", CopyYoutube = "📋 YouTube リンクコピー", CopiedMsg = "コピーしました！"
     },
     ["ko"] = {
-        SearchPlaceholder = "🔍 기능 검색...", TabCombat = "전투", TabMovement = "이동", TabESP = "ESP (투시)", TabCamera = "카메라", TabWorld = "월드", TabUtility = "유틸리티", TabSettings = "설정", TabSocial = "소셜",
+        SearchPlaceholder = "🔍 검색...", TabCombat = "전투", TabMovement = "이동", TabTeleport = "순간이동", TabESP = "ESP (투시)", TabCamera = "카메라", TabWorld = "월드", TabUtility = "유틸리티", TabSettings = "설정", TabSocial = "소셜",
         StateOn = " : 켜짐", StateOff = " : 꺼짐",
         Aimbot = "에임봇", Smoothness = "부드러움", Wallcheck = "벽 체크", PeekDelay = "지연 시간 (ms)", FovSize = "FOV 크기", ShowFov = "FOV 원 표시", Triggerbot = "트리거봇", TriggerDelay = "발사 지연 (ms)", Fling = "플링 타겟", FlingInput = "유저 이름 입력...", AntiFling = "안티 플링",
         Fly = "플라이 핵", FlySpeed = "비행 속도", Speed = "스피드 핵", WalkSpeed = "이동 속도", InfJump = "무한 점프", Noclip = "벽 통과", Invisible = "투명화",
+        TpMethod = "순간이동 방식", TpSpeed = "TP 비행 속도", SelectPlayer = "플레이어에게 이동", TpToCoord = "좌표 순간이동 (X, Y, Z)", DoTpCoord = "🚀 좌표로 이동", TpToMouse = "🖱️ 마우스 위치로 이동", MouseTpKey = "마우스 TP 단축키 [V 키]",
         PlayerEsp = "플레이어 ESP", HumanoidEsp = "모든 휴머노이드 ESP", VisibleCheck = "벽 너머 감지",
         Freecam = "프리캠 [Shift+P]", FreecamSpeed = "프리캠 속도", FovMode = "FOV 모드", FovAngle = "FOV 각도", ThirdPerson = "3인칭 전환 [B 키]",
-        Fullbright = "최대 밝기", Xray = "맵 엑스레이", ApplySkybox = "🌌 스카이박스 적용", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "태양 텍스처", MoonTexture = "달 텍스처", StarCount = "별 개수", ShowCelestial = "해와 달 표시", TimeOfDay = "시간대", Brightness = "환경 밝기",
+        Fullbright = "최대 밝기", Xray = "맵 엑스레이",  LowQuality = "저품질", ApplySkybox = "🌌 스카이박스 적용", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "태양 텍스처", MoonTexture = "달 텍스처", StarCount = "별 개수", ShowCelestial = "해와 달 표시", TimeOfDay = "시간대", Brightness = "환경 밝기",
         AutoPickup = "자동 아이템 줍기", AutoPrompt = "자동 프롬프트", AnimId = "애니메이션 ID...", AnimSpeed = "속도 (기본 1)...", PlayAnim = "▶️ 재생", StopAnim = "⏹️ 정지", AutoToxic = "자동 도발", ChatSpam = "채팅 도배", SpamInput = "도배 메세지...",
         LangSelect = "🌐 언어 / Language", ThemeSelect = "🎨 UI 테마 (Theme)", JsonPlaceholder = "JSON 설정 붙여넣기...", ImportJson = "📥 JSON 불러오기", ExportJson = "📤 JSON 내보내기", SaveConfig = "💾 설정 저장", LoadConfig = "📂 설정 로드", UnloadScript = "❌ 언로드",
         SocialTranslator = "번역: gemini", SocialDeveloper = "스크립트 제작: 大頭", CopyDiscord = "📋 Discord 링크 복사", CopyYoutube = "📋 YouTube 링크 복사", CopiedMsg = "복사되었습니다!"
     },
     ["de"] = {
-        SearchPlaceholder = "🔍 Funktionen suchen...", TabCombat = "Kampf", TabMovement = "Bewegung", TabESP = "ESP", TabCamera = "Kamera", TabWorld = "Welt", TabUtility = "Nützliches", TabSettings = "Einstellungen", TabSocial = "Soziales",
+        SearchPlaceholder = "🔍 Suchen...", TabCombat = "Kampf", TabMovement = "Bewegung", TabTeleport = "Teleport", TabESP = "ESP", TabCamera = "Kamera", TabWorld = "Welt", TabUtility = "Nützliches", TabSettings = "Einstellungen", TabSocial = "Soziales",
         StateOn = " : AN", StateOff = " : AUS",
         Aimbot = "Aimbot", Smoothness = "Glättung", Wallcheck = "Wand-Check", PeekDelay = "Verzögerung (ms)", FovSize = "FOV-Größe", ShowFov = "FOV-Kreis anzeigen", Triggerbot = "Triggerbot", TriggerDelay = "Auslöser-Verzögerung", Fling = "Fling Ziel", FlingInput = "Spielername...", AntiFling = "Anti-Fling",
         Fly = "Fliegen", FlySpeed = "Fluggeschwindigkeit", Speed = "Geschwindigkeit", WalkSpeed = "Laufgeschwindigkeit", InfJump = "Unendlich Springen", Noclip = "Noclip", Invisible = "Unsichtbar",
+        TpMethod = "Teleport-Methode", TpSpeed = "TP Fluggeschwindigkeit", SelectPlayer = "Zu Spieler teleportieren", TpToCoord = "Koordinaten-TP (X, Y, Z)", DoTpCoord = "🚀 Zu Koordinaten teleportieren", TpToMouse = "🖱️ Zu Mauszeiger teleportieren", MouseTpKey = "Maus TP Taste [V]",
         PlayerEsp = "Spieler ESP", HumanoidEsp = "Alle Humanoids ESP", VisibleCheck = "Nur Sichtbare",
         Freecam = "Freie Kamera [Shift+P]", FreecamSpeed = "Kamerageschwindigkeit", FovMode = "FOV Modus", FovAngle = "FOV Winkel", ThirdPerson = "3. Person [Taste B]",
-        Fullbright = "Volle Helligkeit", Xray = "Map XRay", ApplySkybox = "🌌 Skybox anwenden", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "Sonnen-Textur", MoonTexture = "Mond-Textur", StarCount = "Sterne Anzahl", ShowCelestial = "Sonne & Mond anzeigen", TimeOfDay = "Uhrzeit", Brightness = "Umgebungslicht",
+        Fullbright = "Volle Helligkeit", Xray = "Map XRay", LowQuality = "geringe Qualität", ApplySkybox = "🌌 Skybox anwenden", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "Sonnen-Textur", MoonTexture = "Mond-Textur", StarCount = "Sterne Anzahl", ShowCelestial = "Sonne & Mond anzeigen", TimeOfDay = "Uhrzeit", Brightness = "Umgebungslicht",
         AutoPickup = "Auto-Aufheben", AutoPrompt = "Auto-Interaktion", AnimId = "Animations-ID...", AnimSpeed = "Geschwindigkeit (Std. 1)...", PlayAnim = "▶️ Animation abspielen", StopAnim = "⏹️ Stopp", AutoToxic = "Auto Toxic", ChatSpam = "Chat Spam", SpamInput = "Spam Nachricht...",
         LangSelect = "🌐 Sprache / Language", ThemeSelect = "🎨 Theme", JsonPlaceholder = "JSON Konfiguration hier einfügen...", ImportJson = "📥 JSON Importieren", ExportJson = "📤 JSON Exportieren", SaveConfig = "💾 Speichern", LoadConfig = "📂 Laden", UnloadScript = "❌ Skript entladen",
         SocialTranslator = "Übersetzer: gemini", SocialDeveloper = "Skript-Autor: BigHead", CopyDiscord = "📋 Discord Link kopieren", CopyYoutube = "📋 YouTube Link kopieren", CopiedMsg = "Kopiert!"
     },
     ["fr"] = {
-        SearchPlaceholder = "🔍 Rechercher...", TabCombat = "Combat", TabMovement = "Déplacement", TabESP = "ESP", TabCamera = "Caméra", TabWorld = "Monde", TabUtility = "Utilitaires", TabSettings = "Paramètres", TabSocial = "Réseaux",
+        SearchPlaceholder = "🔍 Rechercher...", TabCombat = "Combat", TabMovement = "Déplacement", TabTeleport = "Téléport", TabESP = "ESP", TabCamera = "Caméra", TabWorld = "Monde", TabUtility = "Utilitaires", TabSettings = "Paramètres", TabSocial = "Réseaux",
         StateOn = " : ACTIF", StateOff = " : INACTIF",
         Aimbot = "Aimbot", Smoothness = "Lissage", Wallcheck = "Vérif Mur", PeekDelay = "Délai (ms)", FovSize = "Taille FOV", ShowFov = "Afficher cercle FOV", Triggerbot = "Triggerbot", TriggerDelay = "Délai Trigger (ms)", Fling = "Cible Fling", FlingInput = "Nom du joueur...", AntiFling = "Anti-Fling",
         Fly = "Vol", FlySpeed = "Vitesse de vol", Speed = "Vitesse", WalkSpeed = "Vitesse de marche", InfJump = "Saut infini", Noclip = "Noclip", Invisible = "Invisible",
+        TpMethod = "Méthode TP", TpSpeed = "Vitesse Vol TP", SelectPlayer = "Téléporter au joueur", TpToCoord = "Téléport Coordonnées (X, Y, Z)", DoTpCoord = "🚀 Téléporter aux Coordonnées", TpToMouse = "🖱️ Téléporter à la souris", MouseTpKey = "Touche TP Souris [V]",
         PlayerEsp = "Joueur ESP", HumanoidEsp = "Tous les Humanoides ESP", VisibleCheck = "Visibles uniquement",
         Freecam = "Caméra libre [Shift+P]", FreecamSpeed = "Vitesse caméra", FovMode = "Mode FOV", FovAngle = "Angle FOV", ThirdPerson = "3ème Personne [Touche B]",
-        Fullbright = "Lumière max", Xray = "XRay Carte", ApplySkybox = "🌌 Appliquer Skybox", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "Texture Soleil", MoonTexture = "Texture Lune", StarCount = "Nombre d'étoiles", ShowCelestial = "Afficher Soleil/Lune", TimeOfDay = "Heure", Brightness = "Luminosité",
+        Fullbright = "Lumière max", Xray = "XRay Carte", LowQuality = "de mauvaise qualité", ApplySkybox = "🌌 Appliquer Skybox", SkyBk = "SkyboxBk", SkyDn = "SkyboxDn", SkyFt = "SkyboxFt", SkyLf = "SkyboxLf", SkyRt = "SkyboxRt", SkyUp = "SkyboxUp", SunTexture = "Texture Soleil", MoonTexture = "Texture Lune", StarCount = "Nombre d'étoiles", ShowCelestial = "Afficher Soleil/Lune", TimeOfDay = "Heure", Brightness = "Luminosité",
         AutoPickup = "Ramassage auto", AutoPrompt = "Interactivité auto", AnimId = "ID Animation...", AnimSpeed = "Vitesse (Défaut 1)...", PlayAnim = "▶️ Jouer Animation", StopAnim = "⏹️ Stopper", AutoToxic = "Auto Toxic", ChatSpam = "Chat Spam", SpamInput = "Message Spam...",
         LangSelect = "🌐 Langue / Language", ThemeSelect = "🎨 Thème / Theme", JsonPlaceholder = "Coller le JSON ici...", ImportJson = "📥 Importer JSON", ExportJson = "📤 Exporter JSON", SaveConfig = "💾 Sauvegarder", LoadConfig = "📂 Charger", UnloadScript = "❌ Décharger Script",
-        SocialTranslator = "Traducteur: gemini", SocialDeveloper = "Auteur du Script: BigHead", CopyDiscord = "📋 Copier Lien Discord", CopyYoutube = "📋 Copier Lien YouTube", CopiedMsg = "Copié!"
+        SocialTranslator = "Traducteur: gemini", SocialDeveloper = "Auteur du Script: BigHead", CopyDiscord = "📋 Copier Lien Discord", CopyYoutube = "📋 YouTube Link", CopiedMsg = "Copié!"
     }
 }
 
@@ -132,6 +144,7 @@ local LanguageOptions = {
 
 -- [[ 主題色彩資料檔 ]]
 local Themes = {
+    -- [原本的 4 個主題保留]
     ["Dark"] = {
         Name = "🖤 Dark (預設黑色)",
         MainBg = Color3.fromRGB(18, 18, 22),
@@ -171,6 +184,108 @@ local Themes = {
         Accent = Color3.fromRGB(255, 50, 50),
         Text = Color3.fromRGB(255, 220, 220),
         SubText = Color3.fromRGB(180, 100, 100)
+    },
+
+    -- [新增的 10 個主題]
+    ["OceanBlue"] = {
+        Name = "🌊 Ocean Blue (深海湛藍)",
+        MainBg = Color3.fromRGB(10, 20, 30),
+        TitleBg = Color3.fromRGB(15, 30, 45),
+        ContentBg = Color3.fromRGB(12, 24, 36),
+        ItemBg = Color3.fromRGB(20, 40, 60),
+        Accent = Color3.fromRGB(0, 162, 255),
+        Text = Color3.fromRGB(220, 240, 255),
+        SubText = Color3.fromRGB(100, 140, 180)
+    },
+    ["EmeraldForest"] = {
+        Name = "🌲 Emerald Forest (翡翠森林)",
+        MainBg = Color3.fromRGB(10, 20, 15),
+        TitleBg = Color3.fromRGB(15, 30, 22),
+        ContentBg = Color3.fromRGB(12, 25, 18),
+        ItemBg = Color3.fromRGB(20, 40, 28),
+        Accent = Color3.fromRGB(46, 204, 113),
+        Text = Color3.fromRGB(220, 255, 235),
+        SubText = Color3.fromRGB(100, 160, 120)
+    },
+    ["SunsetOrange"] = {
+        Name = "🌅 Sunset Orange (落日橘紅)",
+        MainBg = Color3.fromRGB(25, 15, 10),
+        TitleBg = Color3.fromRGB(40, 22, 15),
+        ContentBg = Color3.fromRGB(30, 18, 12),
+        ItemBg = Color3.fromRGB(60, 32, 20),
+        Accent = Color3.fromRGB(255, 115, 0),
+        Text = Color3.fromRGB(255, 235, 220),
+        SubText = Color3.fromRGB(180, 120, 90)
+    },
+    ["RoyalPurple"] = {
+        Name = "👑 Royal Purple (皇家紫金)",
+        MainBg = Color3.fromRGB(18, 12, 25),
+        TitleBg = Color3.fromRGB(28, 18, 40),
+        ContentBg = Color3.fromRGB(22, 14, 32),
+        ItemBg = Color3.fromRGB(38, 24, 55),
+        Accent = Color3.fromRGB(212, 175, 55),
+        Text = Color3.fromRGB(240, 230, 255),
+        SubText = Color3.fromRGB(160, 130, 190)
+    },
+    ["MatrixGreen"] = {
+        Name = "💻 Matrix Green (駭客帝國)",
+        MainBg = Color3.fromRGB(5, 15, 5),
+        TitleBg = Color3.fromRGB(10, 25, 10),
+        ContentBg = Color3.fromRGB(8, 20, 8),
+        ItemBg = Color3.fromRGB(15, 40, 15),
+        Accent = Color3.fromRGB(0, 255, 65),
+        Text = Color3.fromRGB(200, 255, 200),
+        SubText = Color3.fromRGB(80, 160, 80)
+    },
+    ["CherryBlossom"] = {
+        Name = "🌸 Cherry Blossom (櫻花粉紅)",
+        MainBg = Color3.fromRGB(30, 20, 25),
+        TitleBg = Color3.fromRGB(45, 30, 38),
+        ContentBg = Color3.fromRGB(36, 24, 30),
+        ItemBg = Color3.fromRGB(60, 40, 50),
+        Accent = Color3.fromRGB(255, 143, 179),
+        Text = Color3.fromRGB(255, 235, 242),
+        SubText = Color3.fromRGB(180, 130, 150)
+    },
+    ["MidnightGold"] = {
+        Name = "✨ Midnight Gold (午夜黑金)",
+        MainBg = Color3.fromRGB(12, 12, 15),
+        TitleBg = Color3.fromRGB(20, 20, 25),
+        ContentBg = Color3.fromRGB(15, 15, 18),
+        ItemBg = Color3.fromRGB(30, 30, 38),
+        Accent = Color3.fromRGB(241, 196, 15),
+        Text = Color3.fromRGB(255, 250, 230),
+        SubText = Color3.fromRGB(160, 150, 120)
+    },
+    ["ArcticBlue"] = {
+        Name = "❄️ Arctic Blue (極地冰藍)",
+        MainBg = Color3.fromRGB(20, 25, 32),
+        TitleBg = Color3.fromRGB(30, 38, 48),
+        ContentBg = Color3.fromRGB(24, 30, 38),
+        ItemBg = Color3.fromRGB(40, 50, 65),
+        Accent = Color3.fromRGB(120, 220, 255),
+        Text = Color3.fromRGB(235, 245, 255),
+        SubText = Color3.fromRGB(120, 150, 180)
+    },
+    ["CoffeeLatte"] = {
+        Name = "☕ Coffee Latte (拿鐵咖啡)",
+        MainBg = Color3.fromRGB(28, 22, 18),
+        TitleBg = Color3.fromRGB(42, 33, 27),
+        ContentBg = Color3.fromRGB(34, 27, 22),
+        ItemBg = Color3.fromRGB(56, 44, 36),
+        Accent = Color3.fromRGB(210, 150, 95),
+        Text = Color3.fromRGB(245, 235, 225),
+        SubText = Color3.fromRGB(160, 135, 115)
+    },
+    ["NeonMint"] = {
+        Name = "🔋 Neon Mint (霓虹薄荷)",
+        MainBg = Color3.fromRGB(10, 25, 20),
+        TitleBg = Color3.fromRGB(18, 40, 32),
+        ContentBg = Color3.fromRGB(14, 32, 26),
+        ItemBg = Color3.fromRGB(25, 60, 48),
+        Accent = Color3.fromRGB(0, 255, 170),
+        Text = Color3.fromRGB(220, 255, 245),
+        SubText = Color3.fromRGB(90, 160, 140)
     }
 }
 
@@ -197,6 +312,11 @@ local FlyEnabled, FlySpeed = false, 50
 local SpeedEnabled, TargetSpeed = false, 50
 local InfiniteJumpEnabled, NoclipEnabled, InvisibleEnabled = false, false, false
 
+-- Teleport
+local TeleportMethod = "Direct"
+local TeleportFlySpeed = 100
+local TargetCoordinates = ""
+
 -- ESP
 local EspEnabled, AllHumanoidEspEnabled, EspVisibleCheckEnabled = false, false, false
 
@@ -206,6 +326,12 @@ local FovEnabled, TargetFov = false, 120
 local ThirdPersonEnabled = false
 local freecamRotation = Vector2.new()
 local isRightMouseDown = false
+
+local OriginalCameraMode = LocalPlayer.CameraMode
+local OriginalCameraMaxZoomDistance = LocalPlayer.CameraMaxZoomDistance
+
+local FreecamToggle
+local ThirdPersonToggle
 
 -- World
 local FullbrightEnabled, MapXrayEnabled = false, false
@@ -223,8 +349,70 @@ local cameraAnchor, invisConnection, bodyVelocity, bodyPosition = nil, nil, nil,
 local skyHeight = 400
 local espObjects, peekTimers, allElements = {}, {}, {}
 
--- 前置宣告配置寫入／讀取函數
 local exportConfigTable, applyConfigTable, saveConfigFile, loadConfigFile
+
+-- [[ 自動取得遊戲名稱 ]]
+local currentGameName = "Game"
+pcall(function()
+    local productInfo = MarketplaceService:GetProductInfo(game.PlaceId)
+    if productInfo and productInfo.Name then
+        currentGameName = productInfo.Name
+    end
+end)
+-- [[ 漸顯ui函式 ]]
+local originalTransparencies = {}
+
+local function saveOriginalTransparencies(parent)
+    for _, obj in ipairs(parent:GetDescendants()) do
+        if not originalTransparencies[obj] then
+            originalTransparencies[obj] = {
+                BackgroundTransparency = obj:IsA("GuiObject") and obj.BackgroundTransparency or nil,
+                TextTransparency = (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) and obj.TextTransparency or nil,
+                ImageTransparency = (obj:IsA("ImageLabel") or obj:IsA("ImageButton")) and obj.ImageTransparency or nil,
+                UIStrokeTransparency = obj:IsA("UIStroke") and obj.Transparency or nil,
+            }
+        end
+    end
+    -- 記錄 MainFrame 本身
+    if not originalTransparencies[parent] then
+        originalTransparencies[parent] = {
+            BackgroundTransparency = parent.BackgroundTransparency
+        }
+    end
+end
+
+-- 執行整體 Fade 動畫
+local function fadeUI(targetFrame, visible, duration)
+    saveOriginalTransparencies(targetFrame)
+    local tweenInfo = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    
+    local allObjects = targetFrame:GetDescendants()
+    table.insert(allObjects, targetFrame)
+
+    for _, obj in ipairs(allObjects) do
+        local orig = originalTransparencies[obj]
+        if orig then
+            local goal = {}
+            
+            if visible then
+                -- 淡入：恢復原始設定的透明度
+                if orig.BackgroundTransparency then goal.BackgroundTransparency = orig.BackgroundTransparency end
+                if orig.TextTransparency then goal.TextTransparency = orig.TextTransparency end
+                if orig.ImageTransparency then goal.ImageTransparency = orig.ImageTransparency end
+                if orig.UIStrokeTransparency then goal.Transparency = orig.UIStrokeTransparency end
+            else
+                -- 淡出：全部轉為完全透明 (1)
+                if orig.BackgroundTransparency then goal.BackgroundTransparency = 1 end
+                if orig.TextTransparency then goal.TextTransparency = 1 end
+                if orig.ImageTransparency then goal.ImageTransparency = 1 end
+                if orig.UIStrokeTransparency then goal.Transparency = 1 end
+            end
+            
+            TweenService:Create(obj, tweenInfo, goal):Play()
+        end
+    end
+end
+
 
 -- [[ UI 主構架 ]]
 local MainFrame = Instance.new("Frame")
@@ -234,9 +422,10 @@ MainFrame.BackgroundColor3 = Themes[CurrentThemeKey].MainBg
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.ClipsDescendants = false
+MainFrame.Visible = false -- 開場動畫結束前保持隱藏
 MainFrame.Parent = ScreenGui
 
--- 自訂拖曳邏輯 (修復舊版 Draggable 棄用漏洞)
+-- 自訂拖曳邏輯
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -278,20 +467,21 @@ TitleCorner.CornerRadius = UDim.new(0, 8)
 TitleCorner.Parent = TitleBar
 
 local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(0, 150, 1, 0)
+TitleLabel.Size = UDim2.new(1, -210, 1, 0)
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-TitleLabel.Text = "BigHead hub"
+TitleLabel.Text = "BigHead Hub - " .. currentGameName
 TitleLabel.TextColor3 = Themes[CurrentThemeKey].Accent
-TitleLabel.TextSize = 16
+TitleLabel.TextSize = 15
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.TextTruncate = Enum.TextTruncate.AtEnd
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Parent = TitleBar
 
--- 頂部搜尋框
+-- 頂部搜尋框 (調小大小)
 local SearchBox = Instance.new("TextBox")
-SearchBox.Size = UDim2.new(1, -180, 0, 24)
-SearchBox.Position = UDim2.new(0, 165, 0, 5)
+SearchBox.Size = UDim2.new(0, 180, 0, 24)
+SearchBox.Position = UDim2.new(1, -190, 0, 5)
 SearchBox.BackgroundColor3 = Themes[CurrentThemeKey].ItemBg
 SearchBox.BorderSizePixel = 0
 SearchBox.PlaceholderText = getTxt("SearchPlaceholder")
@@ -385,6 +575,7 @@ end
 
 local CombatPage = createTab("TabCombat")
 local MovementPage = createTab("TabMovement")
+local TeleportPage = createTab("TabTeleport")
 local EspPage = createTab("TabESP")
 local CameraPage = createTab("TabCamera")
 local WorldPage = createTab("TabWorld")
@@ -544,7 +735,7 @@ local function createSlider(parent, textKey, min, max, default, callback)
     end
 
     table.insert(allElements, {Frame = frame, Key = textKey, Refresh = function() label.Text = getTxt(textKey) .. ": " .. tostring(currentValue) end, ApplyTheme = applyTheme, SetValue = setValue, GetValue = function() return currentValue end})
-    return {SetValue = setValue}
+    return {SetValue = setValue, Frame = frame}
 end
 
 local function createTextBox(parent, placeholderKey, defaultText, callback)
@@ -591,8 +782,8 @@ local function createActionButton(parent, textKey, callback)
     return btn
 end
 
--- [[ 動態推擠式下拉表單 (Inline Tween Dropdown) ]]
-local function createInlineDropdown(parent, labelKey, options, defaultCode, onSelect)
+-- [[ 動態推擠式下拉表單 ]]
+local function createInlineDropdown(parent, labelKey, options, defaultCode, onSelect, dynamicGetOptions)
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 0, 36)
     container.BackgroundColor3 = Themes[CurrentThemeKey].ItemBg
@@ -635,14 +826,47 @@ local function createInlineDropdown(parent, labelKey, options, defaultCode, onSe
 
     local function updateTitle()
         local nameStr = ""
-        for _, opt in ipairs(options) do
+        local currentOpts = dynamicGetOptions and dynamicGetOptions() or options
+        for _, opt in ipairs(currentOpts) do
             if opt.code == selectedCode then nameStr = opt.name break end
         end
+        if nameStr == "" and #currentOpts > 0 then nameStr = currentOpts[1].name end
         mainBtn.Text = getTxt(labelKey) .. ": " .. nameStr .. (isOpen and " ▲" or " ▼")
+    end
+
+    local function buildOptionsList()
+        for _, child in ipairs(scrollList:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        local currentOpts = dynamicGetOptions and dynamicGetOptions() or options
+        for _, opt in ipairs(currentOpts) do
+            local itemBtn = Instance.new("TextButton")
+            itemBtn.Size = UDim2.new(1, 0, 0, 28)
+            itemBtn.BackgroundColor3 = Themes[CurrentThemeKey].MainBg
+            itemBtn.Text = opt.name
+            itemBtn.TextColor3 = Themes[CurrentThemeKey].Text
+            itemBtn.TextSize = 13
+            itemBtn.Font = Enum.Font.SourceSans
+            itemBtn.BorderSizePixel = 0
+            itemBtn.Parent = scrollList
+
+            local itemCorner = Instance.new("UICorner")
+            itemCorner.CornerRadius = UDim.new(0, 4)
+            itemCorner.Parent = itemBtn
+
+            itemBtn.MouseButton1Click:Connect(function()
+                selectedCode = opt.code
+                isOpen = false
+                updateTitle()
+                TweenService:Create(container, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 36)}):Play()
+                onSelect(opt.code)
+            end)
+        end
     end
 
     local function toggleDropdown()
         isOpen = not isOpen
+        if isOpen then buildOptionsList() end
         updateTitle()
         local targetHeight = isOpen and (45 + math.min(scrollList.CanvasSize.Y.Offset, 200)) or 36
         local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
@@ -650,28 +874,6 @@ local function createInlineDropdown(parent, labelKey, options, defaultCode, onSe
     end
 
     mainBtn.MouseButton1Click:Connect(toggleDropdown)
-
-    for _, opt in ipairs(options) do
-        local itemBtn = Instance.new("TextButton")
-        itemBtn.Size = UDim2.new(1, 0, 0, 28)
-        itemBtn.BackgroundColor3 = Themes[CurrentThemeKey].MainBg
-        itemBtn.Text = opt.name
-        itemBtn.TextColor3 = Themes[CurrentThemeKey].Text
-        itemBtn.TextSize = 13
-        itemBtn.Font = Enum.Font.SourceSans
-        itemBtn.BorderSizePixel = 0
-        itemBtn.Parent = scrollList
-
-        local itemCorner = Instance.new("UICorner")
-        itemCorner.CornerRadius = UDim.new(0, 4)
-        itemCorner.Parent = itemBtn
-
-        itemBtn.MouseButton1Click:Connect(function()
-            selectedCode = opt.code
-            toggleDropdown()
-            onSelect(opt.code)
-        end)
-    end
 
     local function applyTheme(theme)
         container.BackgroundColor3 = theme.ItemBg
@@ -760,7 +962,6 @@ createToggleButton(CombatPage, "ShowFov", function(s) ShowFovCircle = s end)
 createToggleButton(CombatPage, "Triggerbot", function(s) TriggerbotEnabled = s end)
 createSlider(CombatPage, "TriggerDelay", 0, 500, 50, function(v) TriggerbotDelay = v end)
 
--- Fling 保留不變
 createToggleButton(CombatPage, "Fling", function(s) FlingEnabled = s end)
 createTextBox(CombatPage, "FlingInput", "", function(t) FlingTargetName = t end)
 createToggleButton(CombatPage, "AntiFling", function(s) AntiFlingEnabled = s end)
@@ -768,6 +969,8 @@ createToggleButton(CombatPage, "AntiFling", function(s) AntiFlingEnabled = s end
 task.spawn(function()
     while true do
         task.wait(0.05)
+        if not IsScriptLoaded then continue end
+
         if FlingEnabled and FlingTargetName ~= "" then
             local targetPlayer = getPlayerByString(FlingTargetName)
             if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -810,16 +1013,14 @@ local function cleanupFly()
     if hum then hum.PlatformStand = false hum:ChangeState(Enum.HumanoidStateType.GettingUp) end
 end
 
-createToggleButton(MovementPage, "Fly", function(s)
-    FlyEnabled = s
-    if not FlyEnabled then
-        cleanupFly()
-        return
-    end
+local function startFly()
+    cleanupFly()
     
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if not FlyEnabled then return end
+
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    local hum = char:WaitForChild("Humanoid", 5)
     if not hrp or not hum then return end
 
     flyBodyVelocity = Instance.new("BodyVelocity")
@@ -844,28 +1045,75 @@ createToggleButton(MovementPage, "Fly", function(s)
         if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVec = moveVec + Camera.CFrame.RightVector end
         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVec = moveVec + Vector3.new(0, 1, 0) end
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVec = moveVec - Vector3.new(0, 1, 0) end
+        
         flyBodyGyro.CFrame = Camera.CFrame
-        flyBodyVelocity.Velocity = moveVec.Magnitude > 0 and moveVec.Unit * FlySpeed or Vector3.new(0,0,0)
+        flyBodyVelocity.Velocity = moveVec.Magnitude > 0 and moveVec.Unit * (FlySpeed or 50) or Vector3.new(0,0,0)
     end)
-end)
-createSlider(MovementPage, "FlySpeed", 10, 200, 50, function(v) FlySpeed = v end)
+end
 
-createToggleButton(MovementPage, "Speed", function(s)
-    SpeedEnabled = s
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = SpeedEnabled and TargetSpeed or 16
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    if FlyEnabled then
+        task.wait(0.5)
+        startFly()
     end
 end)
+
+createToggleButton(MovementPage, "Fly", function(s)
+    FlyEnabled = s
+    if FlyEnabled then
+        startFly()
+    else
+        cleanupFly()
+    end
+end)
+
+createSlider(MovementPage, "FlySpeed", 10, 200, 50, function(v)
+    FlySpeed = v
+end)
+createToggleButton(MovementPage, "Speed", function(s)
+    SpeedEnabled = s
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+    if hum then
+        if SpeedEnabled then
+            hum.WalkSpeed = TargetSpeed
+        else
+            hum.WalkSpeed = 16
+        end
+    end
+end)
+
 createSlider(MovementPage, "WalkSpeed", 16, 200, 50, function(v)
     TargetSpeed = v
-    if SpeedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = TargetSpeed
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+    if SpeedEnabled and hum then
+        hum.WalkSpeed = TargetSpeed
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if not IsScriptLoaded or not SpeedEnabled then
+        return
+    end
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+    if hum and hum.Health > 0 then
+        if hum.WalkSpeed ~= TargetSpeed then
+            hum.WalkSpeed = TargetSpeed
+        end
     end
 end)
 
 createToggleButton(MovementPage, "InfJump", function(s) InfiniteJumpEnabled = s end)
 UserInputService.JumpRequest:Connect(function()
-    if InfiniteJumpEnabled and LocalPlayer.Character then
+    if IsScriptLoaded and InfiniteJumpEnabled and LocalPlayer.Character then
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
     end
@@ -873,14 +1121,13 @@ end)
 
 createToggleButton(MovementPage, "Noclip", function(s) NoclipEnabled = s end)
 RunService.Stepped:Connect(function()
-    if NoclipEnabled and LocalPlayer.Character then
+    if IsScriptLoaded and NoclipEnabled and LocalPlayer.Character then
         for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then part.CanCollide = false end
         end
     end
 end)
 
--- 修復 Invisible 的邏輯與資源清理
 local function cleanupInvisible()
     if invisConnection then invisConnection:Disconnect() invisConnection = nil end
     if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
@@ -942,57 +1189,235 @@ createToggleButton(MovementPage, "Invisible", function(s)
     end)
 end)
 
--- 當角色死亡重置狀態
 LocalPlayer.CharacterAdded:Connect(function()
     if FlyEnabled then cleanupFly() FlyEnabled = false end
     if InvisibleEnabled then cleanupInvisible() InvisibleEnabled = false end
 end)
 
 -- =========================================================================
---  3. ESP PAGE
+--  3. TELEPORT PAGE
+-- =========================================================================
+local function performTeleport(targetCFrame)
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if TeleportMethod == "Direct" then
+        hrp.CFrame = targetCFrame
+    elseif TeleportMethod == "Fly" then
+        local distance = (hrp.Position - targetCFrame.Position).Magnitude
+        local duration = distance / math.max(TeleportFlySpeed, 10)
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+        local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
+        tween:Play()
+    end
+end
+
+local teleportSpeedSlider = createSlider(TeleportPage, "TpSpeed", 20, 500, 100, function(v)
+    TeleportFlySpeed = v
+end)
+teleportSpeedSlider.Frame.Visible = false
+
+local tpMethodOptions = {
+    {code = "Direct", name = "⚡ 直接傳送 (Instant TP)"},
+    {code = "Fly", name = "✈️ 飛過去 (Tween Fly)"}
+}
+
+createInlineDropdown(TeleportPage, "TpMethod", tpMethodOptions, TeleportMethod, function(code)
+    TeleportMethod = code
+    teleportSpeedSlider.Frame.Visible = (code == "Fly")
+end)
+
+local function getOnlinePlayerOptions()
+    local opts = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            table.insert(opts, {code = p.Name, name = "👤 " .. p.DisplayName .. " (@" .. p.Name .. ")"})
+        end
+    end
+    if #opts == 0 then
+        table.insert(opts, {code = "", name = "⚠️ 無其他玩家 (No Players)"})
+    end
+    return opts
+end
+
+createInlineDropdown(TeleportPage, "SelectPlayer", {}, "", function(pName)
+    if pName == "" then return end
+    local targetP = Players:FindFirstChild(pName)
+    if targetP and targetP.Character and targetP.Character:FindFirstChild("HumanoidRootPart") then
+        performTeleport(targetP.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0))
+    end
+end, getOnlinePlayerOptions)
+
+createTextBox(TeleportPage, "TpToCoord", "", function(t) TargetCoordinates = t end)
+createActionButton(TeleportPage, "DoTpCoord", function()
+    if TargetCoordinates == "" then return end
+    local coords = {}
+    for num in string.gmatch(TargetCoordinates, "[^,%s]+") do
+        table.insert(coords, tonumber(num))
+    end
+    if #coords >= 3 then
+        performTeleport(CFrame.new(coords[1], coords[2], coords[3]))
+    end
+end)
+
+local function teleportToMouse()
+    local mouse = LocalPlayer:GetMouse()
+    if mouse and mouse.Hit then
+        performTeleport(mouse.Hit + Vector3.new(0, 3, 0))
+    end
+end
+
+createActionButton(TeleportPage, "TpToMouse", teleportToMouse)
+createActionButton(TeleportPage, "MouseTpKey", function() end)
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe or not IsScriptLoaded then return end
+    if input.KeyCode == Enum.KeyCode.V then
+        teleportToMouse()
+    end
+end)
+
+-- =========================================================================
+--  4. ESP PAGE
 -- =========================================================================
 createToggleButton(EspPage, "PlayerEsp", function(s) EspEnabled = s end)
 createToggleButton(EspPage, "HumanoidEsp", function(s) AllHumanoidEspEnabled = s end)
 createToggleButton(EspPage, "VisibleCheck", function(s) EspVisibleCheckEnabled = s end)
 
 local function setupModelEsp(model)
-    if espObjects[model] then return end
+    if espObjects[model] then
+        return
+    end
+
     local hum = model:FindFirstChildOfClass("Humanoid")
     local hrp = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso")
-    if not hum or not hrp or model == LocalPlayer.Character then return end
 
-    local tracer = Drawing.new("Line") tracer.Visible = false tracer.Color = Color3.fromRGB(0, 230, 255) tracer.Thickness = 1.5
-    local box = Drawing.new("Square") box.Visible = false box.Color = Color3.fromRGB(0, 230, 255) box.Thickness = 1.5 box.Filled = false
-    local nameTag = Drawing.new("Text") nameTag.Visible = false nameTag.Color = Color3.fromRGB(255, 255, 255) nameTag.Size = 14 nameTag.Center = true nameTag.Outline = true
-    
-    espObjects[model] = {tracer = tracer, box = box, nameTag = nameTag}
+    if not hum or not hrp or model == LocalPlayer.Character then
+        return
+    end
+
+    local tracer = Drawing.new("Line")
+    tracer.Visible = false
+    tracer.Color = Color3.fromRGB(0, 230, 255)
+    tracer.Thickness = 1.5
+
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Color3.fromRGB(0, 230, 255)
+    box.Thickness = 1.5
+    box.Filled = false
+
+    local nameTag = Drawing.new("Text")
+    nameTag.Visible = false
+    nameTag.Color = Color3.fromRGB(255, 255, 255)
+    nameTag.Size = 14
+    nameTag.Center = true
+    nameTag.Outline = true
+
+    espObjects[model] = {
+        tracer = tracer,
+        box = box,
+        nameTag = nameTag
+    }
+
     local connection
+
     connection = RunService.RenderStepped:Connect(function()
-        if not model.Parent or not hrp.Parent or hum.Health <= 0 then
-            tracer.Visible = false box.Visible = false nameTag.Visible = false
+        if not IsScriptLoaded or not model.Parent or not hrp.Parent or not hum.Parent or hum.Health <= 0 then
+            tracer.Visible = false
+            box.Visible = false
+            nameTag.Visible = false
+
             if not model.Parent or hum.Health <= 0 then
-                tracer:Remove() box:Remove() nameTag:Remove() connection:Disconnect() espObjects[model] = nil
+                pcall(function()
+                    tracer:Remove()
+                    box:Remove()
+                    nameTag:Remove()
+                end)
+
+                if connection then
+                    connection:Disconnect()
+                end
+
+                espObjects[model] = nil
             end
+
             return
         end
 
         local isPlayer = Players:GetPlayerFromCharacter(model) ~= nil
         local shouldShow = (isPlayer and EspEnabled) or (not isPlayer and AllHumanoidEspEnabled)
-        if not shouldShow then tracer.Visible = false box.Visible = false nameTag.Visible = false return end
 
-        local hrpPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-        if onScreen then
-            local scale = 1000 / hrpPos.Z
-            box.Size = Vector2.new(scale, scale * 1.5)
-            box.Position = Vector2.new(hrpPos.X - box.Size.X / 2, hrpPos.Y - box.Size.Y / 2)
-            box.Visible = true
-            tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-            tracer.To = Vector2.new(hrpPos.X, hrpPos.Y + (box.Size.Y / 2))
-            tracer.Visible = true
-            nameTag.Text = model.Name nameTag.Position = Vector2.new(hrpPos.X, box.Position.Y - 18) nameTag.Visible = true
-        else
-            tracer.Visible = false box.Visible = false nameTag.Visible = false
+        if not shouldShow then
+            tracer.Visible = false
+            box.Visible = false
+            nameTag.Visible = false
+            return
         end
+
+        local boundingCFrame, boundingSize = model:GetBoundingBox()
+        local half = boundingSize / 2
+
+        local corners = {
+            Vector3.new(-half.X, -half.Y, -half.Z),
+            Vector3.new(-half.X, -half.Y,  half.Z),
+            Vector3.new(-half.X,  half.Y, -half.Z),
+            Vector3.new(-half.X,  half.Y,  half.Z),
+            Vector3.new( half.X, -half.Y, -half.Z),
+            Vector3.new( half.X, -half.Y,  half.Z),
+            Vector3.new( half.X,  half.Y, -half.Z),
+            Vector3.new( half.X,  half.Y,  half.Z)
+        }
+
+        local minX, minY = math.huge, math.huge
+        local maxX, maxY = -math.huge, -math.huge
+        local anyOnScreen = false
+
+        for _, corner in ipairs(corners) do
+            local worldPoint = boundingCFrame:PointToWorldSpace(corner)
+            local screenPoint, onScreen = Camera:WorldToViewportPoint(worldPoint)
+
+            if screenPoint.Z > 0 then
+                minX = math.min(minX, screenPoint.X)
+                minY = math.min(minY, screenPoint.Y)
+                maxX = math.max(maxX, screenPoint.X)
+                maxY = math.max(maxY, screenPoint.Y)
+
+                if onScreen then
+                    anyOnScreen = true
+                end
+            end
+        end
+
+        if not anyOnScreen or minX == math.huge then
+            tracer.Visible = false
+            box.Visible = false
+            nameTag.Visible = false
+            return
+        end
+
+        local boxWidth = maxX - minX
+        local boxHeight = maxY - minY
+
+        if boxWidth < 2 or boxHeight < 2 then
+            tracer.Visible = false
+            box.Visible = false
+            nameTag.Visible = false
+            return
+        end
+
+        box.Position = Vector2.new(minX, minY)
+        box.Size = Vector2.new(boxWidth, boxHeight)
+        box.Visible = true
+
+        tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+        tracer.To = Vector2.new((minX + maxX) / 2, maxY)
+        tracer.Visible = true
+
+        nameTag.Text = model.Name
+        nameTag.Position = Vector2.new((minX + maxX) / 2, minY - 18)
+        nameTag.Visible = true
     end)
 end
 
@@ -1000,7 +1425,7 @@ for _, desc in ipairs(workspace:GetDescendants()) do if desc:IsA("Humanoid") and
 workspace.DescendantAdded:Connect(function(desc) if desc:IsA("Humanoid") then task.wait(0.1) if desc.Parent:IsA("Model") then setupModelEsp(desc.Parent) end end end)
 
 -- =========================================================================
---  4. CAMERA PAGE
+--  5. CAMERA PAGE
 -- =========================================================================
 local toggleFreecam = function(s)
     FreecamEnabled = s
@@ -1014,19 +1439,81 @@ local toggleFreecam = function(s)
     end
 end
 
-createToggleButton(CameraPage, "Freecam", function(s) toggleFreecam(s) end)
-createSlider(CameraPage, "FreecamSpeed", 1, 10, 2, function(v) FreecamSpeed = v / 2 end)
-createToggleButton(CameraPage, "FovMode", function(s) FovEnabled = s Camera.FieldOfView = s and TargetFov or 70 end)
-createSlider(CameraPage, "FovAngle", 70, 140, 120, function(v) TargetFov = v if FovEnabled then Camera.FieldOfView = TargetFov end end)
-createToggleButton(CameraPage, "ThirdPerson", function(s) ThirdPersonEnabled = s end)
+FreecamToggle = createToggleButton(CameraPage, "Freecam", function(s)
+    toggleFreecam(s)
+end)
+
+createSlider(CameraPage, "FreecamSpeed", 1, 10, 2, function(v)
+    FreecamSpeed = v / 2
+end)
+
+createToggleButton(CameraPage, "FovMode", function(s)
+    FovEnabled = s
+    Camera.FieldOfView = s and TargetFov or 70
+end)
+
+createSlider(CameraPage, "FovAngle", 70, 140, 120, function(v)
+    TargetFov = v
+    if FovEnabled then
+        Camera.FieldOfView = TargetFov
+    end
+end)
+
+local thirdPersonConn1, thirdPersonConn2
+
+ThirdPersonToggle = createToggleButton(CameraPage, "ThirdPerson", function(s)
+    ThirdPersonEnabled = s
+
+    if thirdPersonConn1 then thirdPersonConn1:Disconnect() thirdPersonConn1 = nil end
+    if thirdPersonConn2 then thirdPersonConn2:Disconnect() thirdPersonConn2 = nil end
+
+    if s then
+        OriginalCameraMode = LocalPlayer.CameraMode
+        OriginalCameraMaxZoomDistance = LocalPlayer.CameraMaxZoomDistance
+
+        LocalPlayer.CameraMaxZoomDistance = 200
+        LocalPlayer.CameraMinZoomDistance = 5
+        LocalPlayer.CameraMode = Enum.CameraMode.Classic
+
+        thirdPersonConn1 = LocalPlayer:GetPropertyChangedSignal("CameraMode"):Connect(function()
+            if ThirdPersonEnabled and LocalPlayer.CameraMode ~= Enum.CameraMode.Classic then
+                LocalPlayer.CameraMode = Enum.CameraMode.Classic
+            end
+        end)
+
+        thirdPersonConn2 = LocalPlayer:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(function()
+            if ThirdPersonEnabled and LocalPlayer.CameraMaxZoomDistance < 200 then
+                LocalPlayer.CameraMaxZoomDistance = 200
+            end
+        end)
+    else
+        LocalPlayer.CameraMode = OriginalCameraMode
+        LocalPlayer.CameraMaxZoomDistance = OriginalCameraMaxZoomDistance
+    end
+end)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == Enum.KeyCode.P and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then toggleFreecam(not FreecamEnabled) end
-    if input.KeyCode == Enum.KeyCode.B and ThirdPersonEnabled then
-        LocalPlayer.CameraMode = (LocalPlayer.CameraMode == Enum.CameraMode.LockFirstPerson) and Enum.CameraMode.Classic or Enum.CameraMode.LockFirstPerson
+    if gpe or not IsScriptLoaded then return end
+
+    if input.KeyCode == Enum.KeyCode.P and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+        local newState = not FreecamEnabled
+        if FreecamToggle and FreecamToggle.Update then
+            FreecamToggle.Update(newState)
+        else
+            toggleFreecam(newState)
+        end
     end
-    if input.UserInputType == Enum.UserInputType.MouseButton2 then isRightMouseDown = true end
+
+    if input.KeyCode == Enum.KeyCode.B then
+        local newState = not ThirdPersonEnabled
+        if ThirdPersonToggle and ThirdPersonToggle.Update then
+            ThirdPersonToggle.Update(newState)
+        end
+    end
+
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        isRightMouseDown = true
+    end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
@@ -1034,14 +1521,14 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if FreecamEnabled and isRightMouseDown and input.UserInputType == Enum.UserInputType.MouseMovement then
+    if IsScriptLoaded and FreecamEnabled and isRightMouseDown and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Delta
         freecamRotation = freecamRotation + Vector2.new(-delta.Y * 0.005, -delta.X * 0.005)
     end
 end)
 
 RunService.RenderStepped:Connect(function()
-    if FreecamEnabled and _G.FreecamCam then
+    if IsScriptLoaded and FreecamEnabled and _G.FreecamCam then
         local rotCFrame = CFrame.Angles(0, freecamRotation.Y, 0) * CFrame.Angles(freecamRotation.X, 0, 0)
         local moveVec = Vector3.new(0, 0, 0)
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVec = moveVec + rotCFrame.LookVector end
@@ -1057,18 +1544,121 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =========================================================================
---  5. WORLD PAGE
+--  6. WORLD PAGE
 -- =========================================================================
 createToggleButton(WorldPage, "Fullbright", function(s) FullbrightEnabled = s end)
-createToggleButton(WorldPage, "Xray", function(s)
-    MapXrayEnabled = s
-    for _, item in ipairs(workspace:GetDescendants()) do
-        if item:IsA("BasePart") then
-            local ancestor = item:FindFirstAncestorOfClass("Model")
-            if not ancestor or not ancestor:FindFirstChildOfClass("Humanoid") then
-                item.Transparency = s and 0.8 or 0
+local originalTransparencies = {}
+
+-- [[ 超低畫質功能變數與邏輯 ]]
+local LowQualityEnabled = false
+local originalSky = nil
+local originalTransparency = {} -- 用來記錄每個物件原本的透明度
+local originalMeshTextureIDs = {} -- 用來記錄 MeshPart 原本的 TextureID
+
+createToggleButton(WorldPage, "LowQuality", function(s)
+    LowQualityEnabled = s
+    
+    if LowQualityEnabled then
+        -- 1. 刪除/隱藏天空 (Sky)
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if sky then
+            originalSky = sky:Clone() -- 備份原本的天空以便恢復
+            sky:Destroy()
+        end
+        
+        -- 2. 清除貼圖、Decal 並記錄原本透明度，同時處理 MeshPart 與 BasePart
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Texture") or obj:IsA("Decal") then
+                -- 紀錄原本的透明度
+                if originalTransparency[obj] == nil then
+                    originalTransparency[obj] = obj.Transparency
+                end
+                -- 清空圖片 ID 並設為完全透明
+                obj.Texture = ""
+                obj.Transparency = 1
+            elseif obj:IsA("MeshPart") then
+                -- 紀錄 MeshPart 原本的 TextureID 並清空
+                if originalMeshTextureIDs[obj] == nil then
+                    originalMeshTextureIDs[obj] = obj.TextureID
+                end
+                obj.TextureID = ""
+                obj.Material = Enum.Material.SmoothPlastic
+            elseif obj:IsA("BasePart") then
+                -- 強制關閉材質細節，轉為平滑塑膠
+                obj.Material = Enum.Material.SmoothPlastic
             end
         end
+    else
+        -- 1. 恢復天空
+        if originalSky and not Lighting:FindFirstChildOfClass("Sky") then
+            originalSky.Parent = Lighting
+        end
+        
+        -- 2. 恢復材質、透明度與 TextureID
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Texture") or obj:IsA("Decal") then
+                -- 恢復原本紀錄的透明度
+                if originalTransparency[obj] ~= nil then
+                    obj.Transparency = originalTransparency[obj]
+                else
+                    obj.Transparency = 0
+                end
+            elseif obj:IsA("MeshPart") then
+                -- 恢復 MeshPart 原本的 TextureID
+                if originalMeshTextureIDs[obj] ~= nil then
+                    obj.TextureID = originalMeshTextureIDs[obj]
+                end
+            end
+        end
+        
+        -- 清空記錄表（釋放記憶體）
+        originalTransparency = {}
+        originalMeshTextureIDs = {}
+    end
+end)
+
+-- 如果地圖動態生成新物件，自動套用超低畫質設定
+workspace.DescendantAdded:Connect(function(obj)
+    if LowQualityEnabled then
+        if obj:IsA("Texture") or obj:IsA("Decal") then
+            if originalTransparency[obj] == nil then
+                originalTransparency[obj] = obj.Transparency
+            end
+            obj.Texture = ""
+            obj.Transparency = 1
+        elseif obj:IsA("MeshPart") then
+            if originalMeshTextureIDs[obj] == nil then
+                originalMeshTextureIDs[obj] = obj.TextureID
+            end
+            obj.TextureID = ""
+            obj.Material = Enum.Material.SmoothPlastic
+        elseif obj:IsA("BasePart") then
+            obj.Material = Enum.Material.SmoothPlastic
+        end
+    end
+end)
+
+createToggleButton(WorldPage, "Xray", function(s)
+    MapXrayEnabled = s
+    if s then
+        for _, item in ipairs(workspace:GetDescendants()) do
+            if item:IsA("BasePart") then
+                local ancestor = item:FindFirstAncestorOfClass("Model")
+                if not ancestor or not ancestor:FindFirstChildOfClass("Humanoid") then
+                    if item.Transparency < 0.5 then
+                        originalTransparencies[item] = item.Transparency
+                        item.Transparency = 0.8
+                    end
+                end
+            end
+        end
+    else
+        for item, originalTransparency in pairs(originalTransparencies) do
+            if item and item.Parent then
+                item.Transparency = originalTransparency
+            end
+        end
+        table.clear(originalTransparencies)
     end
 end)
 
@@ -1091,7 +1681,7 @@ createSlider(WorldPage, "TimeOfDay", 0, 24, 14, function(v) Lighting.ClockTime =
 createSlider(WorldPage, "Brightness", 0, 10, 2, function(v) Lighting.Brightness = v end)
 
 -- =========================================================================
---  6. UTILITY PAGE
+--  7. UTILITY PAGE
 -- =========================================================================
 createToggleButton(UtilityPage, "AutoPickup", function(s) AutoPickupToolsEnabled = s end)
 createToggleButton(UtilityPage, "AutoPrompt", function(s) AutoProximityPromptEnabled = s end)
@@ -1099,6 +1689,8 @@ createToggleButton(UtilityPage, "AutoPrompt", function(s) AutoProximityPromptEna
 task.spawn(function()
     while true do
         task.wait(0.1)
+        if not IsScriptLoaded then continue end
+
         if AutoPickupToolsEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             for _, item in ipairs(workspace:GetChildren()) do
                 if item:IsA("Tool") and item:FindFirstChild("Handle") then
@@ -1141,27 +1733,35 @@ task.spawn(function()
     local toxicPhrases = {"EZZZZZZ", "LOSER", "LOL", "WEAK", "GET GOOD"}
     while true do
         task.wait(1)
+        if not IsScriptLoaded then continue end
         if AutoToxicEnabled then sendChatMessage(toxicPhrases[math.random(1, #toxicPhrases)]) end
         if SpamEnabled and SpamMessage ~= "" then sendChatMessage(SpamMessage) end
     end
 end)
 
 -- =========================================================================
---  7. SETTINGS PAGE
+--  8. SETTINGS PAGE
 -- =========================================================================
-
--- 1. 多國語言選單
 createInlineDropdown(SettingsPage, "LangSelect", LanguageOptions, CurrentLanguage, function(code)
     CurrentLanguage = code
     refreshUiLanguage()
 end)
 
--- 2. 主題選擇選單
 local ThemeOptions = {
     {code = "Dark", name = Themes["Dark"].Name},
     {code = "Light", name = Themes["Light"].Name},
     {code = "Cyberpunk", name = Themes["Cyberpunk"].Name},
-    {code = "BloodRed", name = Themes["BloodRed"].Name}
+    {code = "BloodRed", name = Themes["BloodRed"].Name},
+    {code = "OceanBlue", name = Themes["OceanBlue"].Name},
+    {code = "EmeraldForest", name = Themes["EmeraldForest"].Name},
+    {code = "SunsetOrange", name = Themes["SunsetOrange"].Name},
+    {code = "RoyalPurple", name = Themes["RoyalPurple"].Name},
+    {code = "MatrixGreen", name = Themes["MatrixGreen"].Name},
+    {code = "CherryBlossom", name = Themes["CherryBlossom"].Name},
+    {code = "MidnightGold", name = Themes["MidnightGold"].Name},
+    {code = "ArcticBlue", name = Themes["ArcticBlue"].Name},
+    {code = "CoffeeLatte", name = Themes["CoffeeLatte"].Name},
+    {code = "NeonMint", name = Themes["NeonMint"].Name}
 }
 
 createInlineDropdown(SettingsPage, "ThemeSelect", ThemeOptions, CurrentThemeKey, function(code)
@@ -1170,7 +1770,6 @@ end)
 
 local configJsonBox = createTextBox(SettingsPage, "JsonPlaceholder", "", function(t) end)
 
--- [[ Config JSON 導出與導入 ]]
 exportConfigTable = function()
     return {
         CurrentLanguage = CurrentLanguage,
@@ -1198,6 +1797,10 @@ exportConfigTable = function()
         NoclipEnabled = NoclipEnabled,
         InvisibleEnabled = InvisibleEnabled,
         
+        -- Teleport
+        TeleportMethod = TeleportMethod,
+        TeleportFlySpeed = TeleportFlySpeed,
+
         -- ESP
         EspEnabled = EspEnabled,
         AllHumanoidEspEnabled = AllHumanoidEspEnabled,
@@ -1277,6 +1880,15 @@ applyConfigTable = function(data)
     applyElemValue("InfJump", data.InfiniteJumpEnabled)
     applyElemValue("Noclip", data.NoclipEnabled)
     applyElemValue("Invisible", data.InvisibleEnabled)
+
+    -- Teleport
+    if data.TeleportMethod then
+        TeleportMethod = data.TeleportMethod
+        for _, elem in ipairs(allElements) do
+            if elem.Key == "TpMethod" and elem.SetSelected then elem.SetSelected(TeleportMethod) end
+        end
+    end
+    applyElemValue("TpSpeed", data.TeleportFlySpeed, true)
 
     -- ESP
     applyElemValue("PlayerEsp", data.EspEnabled)
@@ -1359,11 +1971,10 @@ end)
 
 createActionButton(SettingsPage, "SaveConfig", saveConfigFile)
 createActionButton(SettingsPage, "LoadConfig", loadConfigFile)
-
 createActionButton(SettingsPage, "UnloadScript", function() ScreenGui:Destroy() end)
 
 -- =========================================================================
---  8. SOCIAL PAGE
+--  9. SOCIAL PAGE
 -- =========================================================================
 local function createInfoCard(parent, titleKey)
     local card = Instance.new("Frame")
@@ -1405,11 +2016,14 @@ local youtubeLink = "https://www.youtube.com/channel/UCjbtpI_rvfCPntpCubaqnqg"
 createActionButton(SocialPage, "CopyDiscord", function() if setclipboard then setclipboard(discordLink) end end)
 createActionButton(SocialPage, "CopyYoutube", function() if setclipboard then setclipboard(youtubeLink) end end)
 
--- =========================================================================
---  全局 Heartbeat / Aimbot / Triggerbot 運算
+--- =========================================================================
+-- 全局 Heartbeat / Aimbot / Triggerbot 運算
 -- =========================================================================
 local FovCircle = Drawing.new("Circle")
-FovCircle.Color = Color3.fromRGB(0, 230, 255) FovCircle.Thickness = 1.5 FovCircle.NumSides = 32 FovCircle.Filled = false
+FovCircle.Color = Color3.fromRGB(0, 230, 255) 
+FovCircle.Thickness = 1.5 
+FovCircle.NumSides = 32 
+FovCircle.Filled = false
 
 local function isPartVisible(targetPart, model)
     local rayParams = RaycastParams.new()
@@ -1418,7 +2032,45 @@ local function isPartVisible(targetPart, model)
     return workspace:Raycast(Camera.CFrame.Position, targetPart.Position - Camera.CFrame.Position, rayParams) == nil
 end
 
+local function getClosestTarget(checkWall)
+    local mousePos = UserInputService:GetMouseLocation()
+    local closest, shortestDist = nil, AimFovSize
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local part = player.Character:FindFirstChild(AimTargetPart) or player.Character:FindFirstChild("HumanoidRootPart")
+            if part then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                    if dist < shortestDist then
+                        local visible = not checkWall or isPartVisible(part, player.Character)
+                        if visible then
+                            if not peekTimers[player.Character] then peekTimers[player.Character] = os.clock() end
+                            if (os.clock() - peekTimers[player.Character]) * 1000 >= AimPeekDelay then
+                                shortestDist = dist
+                                closest = part
+                            end
+                        else
+                            peekTimers[player.Character] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
 RunService.RenderStepped:Connect(function()
+    if not IsScriptLoaded then return end
+
+    if FovEnabled and not FreecamEnabled then
+        if Camera.FieldOfView ~= TargetFov then
+            Camera.FieldOfView = TargetFov
+        end
+    end
+    
     FovCircle.Position = UserInputService:GetMouseLocation()
     FovCircle.Radius = AimFovSize
     FovCircle.Visible = AimbotEnabled and ShowFovCircle and not FreecamEnabled
@@ -1428,56 +2080,179 @@ RunService.RenderStepped:Connect(function()
         Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
     end
 
-    if AimbotEnabled and not FreecamEnabled and UserInputService:IsMouseButtonPressed(AimKey) then
-        local mousePos = UserInputService:GetMouseLocation()
-        local closest, shortestDist = nil, AimFovSize
+    if AimbotEnabled and not FreecamEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local targetPart = getClosestTarget(AimWallCheck)
+        if targetPart then
+            local mousePos = UserInputService:GetMouseLocation()
+            local targetPos = Camera:WorldToViewportPoint(targetPart.Position)
+            local moveVector = (Vector2.new(targetPos.X, targetPos.Y) - mousePos) * AimSmoothness
 
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-                local part = player.Character:FindFirstChild(AimTargetPart) or player.Character:FindFirstChild("HumanoidRootPart")
-                if part then
-                    local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
-                    if onScreen then
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                        if dist < shortestDist then
-                            local visible = not AimWallCheck or isPartVisible(part, player.Character)
-                            if visible then
-                                if not peekTimers[player.Character] then peekTimers[player.Character] = os.clock() end
-                                if (os.clock() - peekTimers[player.Character]) * 1000 >= AimPeekDelay then
-                                    shortestDist = dist
-                                    closest = part
-                                end
-                            else
-                                peekTimers[player.Character] = nil
-                            end
-                        end
-                    end
-                end
+            if mousemoverel then
+                mousemoverel(moveVector.X, moveVector.Y)
             end
         end
+    end
 
-        if closest then
-            local targetPos = Camera:WorldToViewportPoint(closest.Position)
-            local moveVector = (Vector2.new(targetPos.X, targetPos.Y) - mousePos) * AimSmoothness
-            if mousemoverel then mousemoverel(moveVector.X, moveVector.Y) end
-
-            if TriggerbotEnabled and (os.clock() - lastTriggerTime) * 1000 >= TriggerbotDelay then
+    if TriggerbotEnabled and not FreecamEnabled then
+        local targetPart = getClosestTarget(true) 
+        if targetPart then
+            if (os.clock() - lastTriggerTime) * 1000 >= TriggerbotDelay then
                 lastTriggerTime = os.clock()
-                if mouse1click then mouse1click() elseif mouse1press then mouse1press() task.wait(0.01) mouse1release() end
+
+                if mouse1click then
+                    mouse1click()
+                elseif mouse1press then
+                    mouse1press()
+                    task.spawn(function()
+                        task.wait(0.01)
+                        mouse1release()
+                    end)
+                end
             end
         end
     end
 end)
 
+local isTweening = false
+
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == ToggleKey then
+    if gpe or not IsScriptLoaded then return end
+    if input.KeyCode == ToggleKey and not isTweening then
         UiVisible = not UiVisible
-        MainFrame.Visible = UiVisible
+        isTweening = true
+        
+        if UiVisible then
+            MainFrame.Visible = true
+            fadeUI(MainFrame, true, 0.35)
+            task.wait(0.35)
+        else
+            fadeUI(MainFrame, false, 0.35)
+            task.wait(0.35)
+            if not UiVisible then
+                MainFrame.Visible = false
+            end
+        end
+        
+        isTweening = false
     end
 end)
 
 refreshUiLanguage()
 loadConfigFile()
 
-print("[BigHead hub] Fixed bugs loaded successfully!")
+-- =========================================================================
+--  10. 開場動畫 (INTRO ANIMATION OVERLAY)
+-- =========================================================================
+local function playIntroAnimation()
+    local IntroOverlay = Instance.new("Frame")
+    IntroOverlay.Size = UDim2.new(1, 0, 1, 0)
+    IntroOverlay.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
+    IntroOverlay.BackgroundTransparency = 1
+    IntroOverlay.BorderSizePixel = 0
+    IntroOverlay.ZIndex = 100
+    IntroOverlay.Parent = ScreenGui
+
+    local IntroCard = Instance.new("Frame")
+    IntroCard.Size = UDim2.new(0, 360, 0, 180)
+    IntroCard.Position = UDim2.new(0.5, -180, 0.5, -90)
+    IntroCard.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+    IntroCard.BorderSizePixel = 0
+    IntroCard.ZIndex = 101
+    IntroCard.Parent = IntroOverlay
+
+    local CardCorner = Instance.new("UICorner")
+    CardCorner.CornerRadius = UDim.new(0, 10)
+    CardCorner.Parent = IntroCard
+
+    local CardStroke = Instance.new("UIStroke")
+    CardStroke.Color = Color3.fromRGB(0, 230, 255)
+    CardStroke.Thickness = 2
+    CardStroke.Transparency = 1
+    CardStroke.Parent = IntroCard
+
+    local IntroTitle = Instance.new("TextLabel")
+    IntroTitle.Size = UDim2.new(1, 0, 0, 40)
+    IntroTitle.Position = UDim2.new(0, 0, 0, 30)
+    IntroTitle.Text = "BigHead Hub - " .. currentGameName
+    IntroTitle.TextColor3 = Color3.fromRGB(0, 230, 255)
+    IntroTitle.TextSize = 18
+    IntroTitle.Font = Enum.Font.SourceSansBold
+    IntroTitle.TextTransparency = 1
+    IntroTitle.BackgroundTransparency = 1
+    IntroTitle.ZIndex = 102
+    IntroTitle.Parent = IntroCard
+
+    local IntroSubTitle = Instance.new("TextLabel")
+    IntroSubTitle.Size = UDim2.new(1, 0, 0, 20)
+    IntroSubTitle.Position = UDim2.new(0, 0, 0, 70)
+    IntroSubTitle.Text = "Initializing modules & scripts..."
+    IntroSubTitle.TextColor3 = Color3.fromRGB(180, 180, 200)
+    IntroSubTitle.TextSize = 13
+    IntroSubTitle.Font = Enum.Font.SourceSans
+    IntroSubTitle.TextTransparency = 1
+    IntroSubTitle.BackgroundTransparency = 1
+    IntroSubTitle.ZIndex = 102
+    IntroSubTitle.Parent = IntroCard
+
+    local ProgressBarBg = Instance.new("Frame")
+    ProgressBarBg.Size = UDim2.new(0.8, 0, 0, 6)
+    ProgressBarBg.Position = UDim2.new(0.1, 0, 0, 120)
+    ProgressBarBg.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    ProgressBarBg.BorderSizePixel = 0
+    ProgressBarBg.ZIndex = 102
+    ProgressBarBg.Parent = IntroCard
+
+    local ProgressCorner = Instance.new("UICorner")
+    ProgressCorner.CornerRadius = UDim.new(1, 0)
+    ProgressCorner.Parent = ProgressBarBg
+
+    local ProgressBarFill = Instance.new("Frame")
+    ProgressBarFill.Size = UDim2.new(0, 0, 1, 0)
+    ProgressBarFill.BackgroundColor3 = Color3.fromRGB(0, 230, 255)
+    ProgressBarFill.BorderSizePixel = 0
+    ProgressBarFill.ZIndex = 103
+    ProgressBarFill.Parent = ProgressBarBg
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = ProgressBarFill
+
+    -- 動畫淡入效果
+    TweenService:Create(CardStroke, TweenInfo.new(0.6), {Transparency = 0}):Play()
+    TweenService:Create(IntroTitle, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
+    TweenService:Create(IntroSubTitle, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
+    
+    task.wait(0.4)
+    -- 進度條動畫 (1.2 秒)
+    local fillTween = TweenService:Create(ProgressBarFill, TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)})
+    fillTween:Play()
+    fillTween.Completed:Wait()
+
+    IntroSubTitle.Text = "Ready!"
+    IntroSubTitle.TextColor3 = Color3.fromRGB(100, 255, 100)
+    task.wait(0.3)
+
+    -- 淡出消失效果
+    TweenService:Create(IntroOverlay, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(CardStroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
+    TweenService:Create(IntroTitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+    TweenService:Create(IntroSubTitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+    TweenService:Create(ProgressBarBg, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(ProgressBarFill, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    
+    task.wait(0.5)
+    IntroOverlay:Destroy()
+
+    -- 開啟腳本功能鎖並顯示選單
+    IsScriptLoaded = true
+    
+    -- 先預設將整個 MainFrame 設為透明狀態並顯示
+    fadeUI(MainFrame, false, 0)
+    MainFrame.Visible = true
+    
+    -- 執行淡入動畫
+    fadeUI(MainFrame, true, 0.4)
+    print("[BigHead hub] Initialization complete! Features unlocked.")
+end
+
+task.spawn(playIntroAnimation)
